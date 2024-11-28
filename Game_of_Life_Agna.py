@@ -4,6 +4,8 @@ from typing import Any
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import argparse
+import time
+
 
 def kurti_matrica(dim: int) -> list[list[int]]:
     grid: list[list[int]] = []
@@ -15,6 +17,7 @@ def kurti_matrica(dim: int) -> list[list[int]]:
             line.append(state)
         grid.append(line)
     return grid
+
 
 def skaiciuoti_kaimynus(grid: list[list[int]], x: int, y: int, dim: int) -> int:
     total: int = 0
@@ -29,9 +32,10 @@ def skaiciuoti_kaimynus(grid: list[list[int]], x: int, y: int, dim: int) -> int:
                 total += grid[ny][nx]
     return total
 
+
 def pritaikyti_4_taisykles(grid: list[list[int]], dim: int) -> list[list[int]]:
     new_grid: list[list[int]] = kurti_matrica(dim)
-    # new_grid: list[list[int] = grid.copy()
+    # new_grid: list[list[int]] = grid.copy()
 
     for y, row in enumerate(grid):
         for x, is_alive in enumerate(row):
@@ -57,6 +61,7 @@ def pritaikyti_4_taisykles(grid: list[list[int]], dim: int) -> list[list[int]]:
 
     return new_grid
 
+
 def main(dim: int, generations: int) -> None:
     grid: list[list[int]] = kurti_matrica(dim)
 
@@ -72,19 +77,11 @@ def main(dim: int, generations: int) -> None:
     fig, ax = plt.subplots()
     img = ax.imshow(grid, cmap="binary")
 
-    def animuoti(frame: int) -> tuple[Any]:
-        nonlocal grid
-        if frame >= generations:
-            ani.event_source.stop()
-            return (img,)
-
+    for frame in range(generations):
         grid = pritaikyti_4_taisykles(grid, dim)
         img.set_data(grid)
-        return (img,)
-
-    ani = animation.FuncAnimation(
-        fig, animuoti, frames=generations, interval=50, blit=True
-    )
+        plt.draw()
+        plt.pause(0.08)
     plt.show()
 
 
@@ -101,7 +98,7 @@ if __name__ == "__main__":
         "--gen",
         type=int,
         required=False,
-        default=10,
+        default=5,
         help="Generacijos skaicius"
     )
     args = parser.parse_args()
