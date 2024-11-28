@@ -2,17 +2,15 @@ from pprint import pprint
 import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import argparse
 
-DIM = 30
-grid = []
-
-def kurti_matrica(dim:int=DIM) -> list[list[int]]:
+def kurti_matrica(dim: int) -> list[list[int]]:
     grid = []
     for _ in range(dim):
         line = []
         for _ in range(dim):
-            #state = random.choice([0, 1])
-            state = 0
+            state = random.choice([0, 1])
+            #state = 0
             line.append(state)
         grid.append(line)
     return grid
@@ -25,13 +23,13 @@ def skaiciuoti_kaimynus(grid, x, y, dim):
                 continue
             nx = x + dx
             ny = y + dy
-          
+
             if 0 <= nx < dim and 0 <= ny < dim:
                 total += grid[ny][nx]
     return total
 
 def pritaikyti_4_taisykles(grid, dim):
-    new_grid = kurti_matrica()
+    new_grid = kurti_matrica(dim)
 
     for y, row in enumerate(grid):
         for x, is_alive in enumerate(row):
@@ -39,9 +37,9 @@ def pritaikyti_4_taisykles(grid, dim):
             if is_alive:
                 new_state = neib in (2, 3)
             else:
-                new_state = neib==3
+                new_state = neib == 3
             new_grid[y][x] = int(new_state)
-                
+
     # for x in range(dim):
     #     for y in range(dim):
     #         live_neighbors = skaiciuoti_kaimynus(grid, x, y, dim)
@@ -56,44 +54,34 @@ def pritaikyti_4_taisykles(grid, dim):
 
     return new_grid
 
-def spausdinti(grid, dim):
-    for row in grid:
-        line = "".join([str(item)for item in row])
-        print(line)
-    print("\n" + "-" * dim) #atskirti kiekviena generacija bruksnine linija
+def main(dim, generations):
+    grid = kurti_matrica(dim)
 
-grid = kurti_matrica()
+    #kryzius idedamas i matrica
+    if dim >= 3:
+        mid = dim // 2
+        grid[mid][mid-1] = 1
+        grid[mid][mid] = 1
+        grid[mid][mid+1] = 1
+        grid[mid-1][mid] = 1
+        grid[mid+1][mid] = 1
 
-#kryzius idedamas i matrica
-if DIM >= 3:
-    mid = DIM // 2
-    grid[mid][mid-1] = 1
-    grid[mid][mid] = 1
-    grid[mid][mid+1] = 1
-    grid[mid-1][mid] = 1
-    grid[mid+1][mid] = 1
+    fig, ax = plt.subplots()
+    img = ax.imshow(grid, cmap='binary')
 
-generations = 12 #kiek  generaciju daryti
+    def animuoti(frame):
+        nonlocal grid
+        grid = pritaikyti_4_taisykles(grid, dim)
+        img.set_data(grid)
+        return img,
 
-# debuginimui
-# count= skaiciuoti_kaimynus(grid, 4, 4, DIM)
-# print(count)
+    ani = animation.FuncAnimation(fig, animuoti, frames=generations, interval=50, blit=True)
+    plt.show()
 
-#spausdinti terminale
-#for _ in range(generations):
-#    spausdinti(grid, DIM)
-#    grid = pritaikyti_4_taisykles(grid, DIM)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Game Of Life')
+    parser.add_argument('--dim', type=int, required=False, default=30, help='Matricos dimensija vienetais')
+    parser.add_argument('--gen', type=int, required=False, default=12, help='Generacijos skaicius')
+    args = parser.parse_args()
 
-
-fig, ax = plt.subplots()
-img = ax.imshow(grid, cmap='binary')
-
-def animuoti (frame):
-    global grid
-    grid = pritaikyti_4_taisykles(grid, DIM)
-    img.set_data(grid)
-    return img,
-
-ani = animation.FuncAnimation(fig, animuoti, frames=generations, interval=500, blit=True)
-
-plt.show()
+    main(args.dim, args.gen)
